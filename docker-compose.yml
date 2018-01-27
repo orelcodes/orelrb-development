@@ -2,6 +2,17 @@ version: '3'
 services:
   db:
     image: postgres:10.1-alpine
+  frontend:
+    build:
+      context: ../orelrb-frontend
+      dockerfile: Dockerfile-dev
+    command: yarn start
+    image: frontend:1
+    container_name: frontend_1
+    volumes:
+      - ../orelrb-frontend:/usr/src/app
+    ports:
+      - "3000:3000"
   backend:
     build:
       context: ../orelrb-backend
