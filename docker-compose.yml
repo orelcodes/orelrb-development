@@ -1,16 +1,18 @@
-version '3'
+version: '3'
 services:
   db:
-    image: postgres
-  web:
+    image: postgres:10.1-alpine
+  backend:
     build:
-      context: ../orelrb-api
-      command: bundle exec rails s -p 3000 -b '0.0.0.0'
-    image: web:1
-    container_name: web-container
+      context: ../orelrb-backend
+      dockerfile: Dockerfile-dev
+    command: bash -c "rm -rf /usr/src/app/tmp/pids/server.pid;
+      bundle exec rails s -p 4000 -b '0.0.0.0'"
+    image: backend:1
+    container_name: backend_1
     volumes:
-      - .:/usr/src/app
+      - ../orelrb-backend:/usr/src/app
     ports:
-      - "3000:3000"
+      - "4000:4000"
     depends_on:
       - db
