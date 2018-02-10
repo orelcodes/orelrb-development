@@ -1,0 +1,47 @@
+version: '3'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker/sock:ro
+    restart: unless-stopped
+  db:
+    image: postgres:10.1-alpine
+    container_name: db
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: db
+  frontend:
+    build:
+      context: ../orelrb-frontend
+      dockerfile: Dockerfile.dev
+    command: yarn start
+    image: frontend:1
+    container_name: frontend
+    restart: unless-stopped
+    volumes:
+      - ../orelrb-frontend:/usr/src/app
+    ports:
+      - "3000:3000"
+    environment:
+      VIRTUAL_HOST: frontend
+  backend:
+    build:
+      context: ../orelrb-backend
+      dockerfile: Dockerfile.dev
+    command: bash -c "rm -rf /usr/src/app/tmp/pids/server.pid;
+      bundle exec rails s -p 4000 -b '0.0.0.0'"
+    image: backend:1
+    container_name: backend
+    restart: unless-stopped
+    volumes:
+      - ../orelrb-backend:/usr/src/app
+    ports:
+      - "4000:4000"
+    environment:
+      VIRTUAL_HOST: backend
+    depends_on:
+      - db
