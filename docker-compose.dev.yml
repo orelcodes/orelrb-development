@@ -7,8 +7,9 @@ services:
     build:
       context: ../orelrb-frontend
       dockerfile: Dockerfile.dev
-    command: yarn start
-    image: orelrb/frontend:1
+    command: bash -c "ln -s node_modules/react-scripts/bin/react-scripts.js node_modules/.bin/react-scripts;
+      yarn start"
+    image: orelrb/frontend:latest
     container_name: frontend
     volumes:
       - ../orelrb-frontend:/usr/src/app
@@ -20,7 +21,7 @@ services:
       dockerfile: Dockerfile.dev
     command: bash -c "rm -rf /usr/src/app/tmp/pids/server.pid;
       bundle exec rails s -p 4000 -b '0.0.0.0'"
-    image: orelrb/backend:1
+    image: orelrb/backend:latest
     container_name: backend
     volumes:
       - ../orelrb-backend:/usr/src/app
