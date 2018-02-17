@@ -2,11 +2,12 @@ version: '3'
 services:
   nginx-proxy:
     image: jwilder/nginx-proxy:alpine
+    container_name: nginx-proxy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /var/run/docker.sock:/tmp/docker/sock:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./nginx/certs:/etc/nginx/certs:ro
       - /etc/nginx/vhost.d
       - /usr/share/nginx/html
@@ -14,12 +15,17 @@ services:
 
   letsencrypt-nginx-proxy-companion:
     image: jrcs/letsencrypt-nginx-proxy-companion:stable
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "jwilder/nginx-proxy:alpine"
     container_name: letsencrypt-nginx-proxy-companion
+    volumes:
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./nginx/certs:/etc/nginx/certs:rw
     restart: unless-stopped
-    volumes-from:
-      - nginx-proxy
 
-  nginx-orelrb: nginx
+  nginx-orelrb:
     image: nginx:1.13.8-alpine
     container_name: nginx-orelrb
     restart: unless-stopped
@@ -42,10 +48,10 @@ services:
   backend:
     build:
       context: ../orelrb-backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     command: bash -c "rm -rf /usr/src/app/tmp/pids/server.pid;
       bundle exec rails s -p 4000 -b '0.0.0.0'"
-    image: backend:1
+    image: orelrb/backend:latest
     container_name: backend
     restart: unless-stopped
     volumes:
@@ -62,9 +68,10 @@ services:
   frontend:
     build:
       context: ../orelrb-frontend
-      dockerfile: Dockerfile.dev
-    command: yarn start
-    image: frontend:1
+      dockerfile: Dockerfile.prod
+    command: bash -c "ln -s node_modules/react-scripts/bin/react-scripts.js node_modules/.bin/react-scripts;
+      yarn start"
+    image: orelrb/frontend:latest
     container_name: frontend
     restart: unless-stopped
     volumes:
