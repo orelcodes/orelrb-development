@@ -49,7 +49,7 @@ services:
     build:
       context: ../orelrb-backend
       dockerfile: Dockerfile.prod
-    command: bash -c "rm -rf /usr/src/app/tmp/pids/server.pid;
+    command: sh -c "rm -rf /usr/src/app/tmp/pids/server.pid;
       bundle exec rails s -p 4000 -b '0.0.0.0'"
     image: orelrb/backend:latest
     container_name: backend
@@ -69,7 +69,7 @@ services:
     build:
       context: ../orelrb-frontend
       dockerfile: Dockerfile.prod
-    command: bash -c "ln -s node_modules/react-scripts/bin/react-scripts.js node_modules/.bin/react-scripts;
+    command: sh -c "ln -s node_modules/react-scripts/bin/react-scripts.js node_modules/.bin/react-scripts;
       yarn start"
     image: orelrb/frontend:latest
     container_name: frontend
