@@ -40,10 +40,6 @@ services:
     image: postgres:10.1-alpine
     container_name: db
     restart: unless-stopped
-    environment:
-      VIRTUAL_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_EMAIL: karpinovsky@gmail.com
 
   backend:
     command: sh -c "rm -rf /usr/src/app/tmp/pids/server.pid;
@@ -53,10 +49,6 @@ services:
     restart: unless-stopped
     ports:
       - "4000:4000"
-    environment:
-      VIRTUAL_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_EMAIL: karpinovsky@gmail.com
     depends_on:
       - db
 
@@ -68,9 +60,5 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      VIRTUAL_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_HOST: orelrb.centralus.cloudapp.azure.com
-      LETSENCRYPT_EMAIL: karpinovsky@gmail.com
     depends_on:
       - backend
