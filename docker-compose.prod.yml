@@ -8,57 +8,58 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ./nginx/certs:/etc/nginx/certs:ro
+      - /etc/nginx/certs
       - /etc/nginx/vhost.d
       - /usr/share/nginx/html
     restart: unless-stopped
 
   letsencrypt-nginx-proxy-companion:
     image: jrcs/letsencrypt-nginx-proxy-companion:stable
-    labels:
-      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "jwilder/nginx-proxy:alpine"
     container_name: letsencrypt-nginx-proxy-companion
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: jwilder/nginx-proxy:alpine
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/nginx/certs:rw
       - /etc/nginx/vhost.d
       - /usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./nginx/certs:/etc/nginx/certs:rw
     restart: unless-stopped
 
   nginx-orelrb:
     image: nginx:1.13.8-alpine
     container_name: nginx-orelrb
     restart: unless-stopped
+    volumes:
+      - ./nginx/conf.d/nginx-orelrb.conf:/etc/nginx/conf.d/nginx-orelrb.conf
     environment:
       VIRTUAL_HOST: orelrb.centralus.cloudapp.azure.com
       LETSENCRYPT_HOST: orelrb.centralus.cloudapp.azure.com
       LETSENCRYPT_EMAIL: karpinovsky@gmail.com
+
+  frontend:
+    image: orelrb/frontend:latest
+    container_name: frontend
+    command: yarn start
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: frontend
+      VIRTUAL_PORT: 3000
     depends_on:
       - backend
+
+  backend:
+    image: orelrb/backend:latest
+    container_name: backend
+    command: sh -c "rm -rf /usr/src/app/tmp/pids/server.pid;
+      bundle exec rails s -p 4000 -b '0.0.0.0'"
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: backend
+      VIRTUAL_PORT: 4000
+    depends_on:
+      - db
 
   db:
     image: postgres:10.1-alpine
     container_name: db
     restart: unless-stopped
-
-  backend:
-    command: sh -c "rm -rf /usr/src/app/tmp/pids/server.pid;
-      bundle exec rails s -p 4000 -b '0.0.0.0'"
-    image: orelrb/backend:latest
-    container_name: backend
-    restart: unless-stopped
-    ports:
-      - "4000:4000"
-    depends_on:
-      - db
-
-  frontend:
-    command: sh -c "ln -s node_modules/react-scripts/bin/react-scripts.js node_modules/.bin/react-scripts;
-      yarn start"
-    image: orelrb/frontend:latest
-    container_name: frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
