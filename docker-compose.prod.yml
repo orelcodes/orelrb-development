@@ -38,6 +38,7 @@ services:
     environment:
       VIRTUAL_HOST: backend
       VIRTUAL_PORT: 4000
+      RAILS_ENV: production
     depends_on:
       - db
 
